@@ -4,14 +4,21 @@
  Change history
 ================
 
-.. _version-2.3.0:
+.. _version-2.3.1-rc1:
 
-2.3.0
+2.3.1-rc1
 =====
 :release-date:
 :release-by:
 
 - Admin "disable_tasks" action also updates PeriodicTask's last_run_at field
+- feat: add periodic_task_name in favor of celery/django-celery-results
+- Fix ClockedSchedule and PeriodicTasks showing UTC time when Time Zone
+- Change last_run_at=None when using disable tasks admin action (#501)
+- fix the conflict with celery configuration (#525)
+- A unit Test to make sure ClockedSchedule and PeriodicTasks are shown
+- Django 4.0 and Python 3.10 support (#528)
+
 
 .. _version-2.2.1:
 

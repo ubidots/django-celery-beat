@@ -1,4 +1,9 @@
+import datetime
 import os
+try:
+    from zoneinfo import available_timezones, ZoneInfo
+except ImportError:
+    from backports.zoneinfo import available_timezones, ZoneInfo
 
 from celery import schedules
 from django.test import TestCase, override_settings
@@ -8,8 +13,7 @@ from django.db.migrations.autodetector import MigrationAutodetector
 from django.db.migrations.loader import MigrationLoader
 from django.db.migrations.questioner import NonInteractiveMigrationQuestioner
 from django.utils import timezone
-
-import timezone_field
+from django.conf import settings
 
 from django_celery_beat import migrations as beat_migrations
 from django_celery_beat.models import (
@@ -83,8 +87,7 @@ class TestDuplicatesMixin:
 
 
 class CrontabScheduleTestCase(TestCase, TestDuplicatesMixin):
-    FIRST_VALID_TIMEZONE = timezone_field.\
-        TimeZoneField.default_choices[0][0].zone
+    FIRST_VALID_TIMEZONE = available_timezones().pop()
 
     def test_default_timezone_without_settings_config(self):
         assert crontab_schedule_celery_timezone() == "UTC"
@@ -146,3 +149,13 @@ class ClockedScheduleTestCase(TestCase, TestDuplicatesMixin):
     def test_duplicate_schedules(self):
         kwargs = {'clocked_time': timezone.now()}
         self._test_duplicate_schedules(ClockedSchedule, kwargs)
+
+    # IMPORTANT: we must have a valid timezone (not UTC) for accurate testing
+    @override_settings(TIME_ZONE='Africa/Cairo')
+    def test_timezone_format(self):
+        """Ensure scheduled time is not shown in UTC when timezone is used"""
+        tz_info = datetime.datetime.now(ZoneInfo(settings.TIME_ZONE))
+        schedule, created = ClockedSchedule.objects.get_or_create(
+            clocked_time=tz_info)
+        # testnig str(schedule) calls make_aware() internally
+        assert str(schedule.clocked_time) == str(schedule)
