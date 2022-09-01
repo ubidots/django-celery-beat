@@ -33,4 +33,3 @@ coverage.xml
 .eggs/
 .python-version
 venv
-.env
