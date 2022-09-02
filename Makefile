@@ -144,9 +144,12 @@ test:
 cov:
 	(cd $(TESTDIR); $(PYTEST) -x --cov="$(PROJ)" --cov-report=html)
 
-build:
-	$(PYTHON) setup.py sdist bdist_wheel
-
 distcheck: lint test clean
 
 dist: readme contrib clean-dist build
+
+build: clean-build
+	python -m build
+
+publish: build
+	python -m twine upload --repository ubidots dist/*
